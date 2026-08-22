@@ -1,0 +1,55 @@
+### 상품 전체 조회
+GET http://localhost:8080/api/products
+
+### 상품 단건 조회
+GET http://localhost:8080/api/products/1
+
+### 상품 등록
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "게이밍 헤드셋",
+  "price": 89000,
+  "stock": 5
+}
+
+### 재고 감소 — 정상
+POST http://localhost:8080/api/products/1/decrease-stock
+Content-Type: application/json
+
+{
+  "quantity": 2
+}
+
+### 재고 감소 — 수량이 0 이하 (400)
+POST http://localhost:8080/api/products/1/decrease-stock
+Content-Type: application/json
+
+{
+  "quantity": 0
+}
+
+### 재고 감소 — 재고 부족 (400)
+POST http://localhost:8080/api/products/2/decrease-stock
+Content-Type: application/json
+
+{
+  "quantity": 999
+}
+
+### 재고 감소 — 판매중지 상품 (400)
+POST http://localhost:8080/api/products/4/decrease-stock
+Content-Type: application/json
+
+{
+  "quantity": 1
+}
+
+### 한정판(재고 1개) 재고 소진 → SOLD_OUT 전환 확인
+POST http://localhost:8080/api/products/3/decrease-stock
+Content-Type: application/json
+
+{
+  "quantity": 1
+}

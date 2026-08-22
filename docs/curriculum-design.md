@@ -31,34 +31,89 @@
 
 ### 0.3 저장소 · 브랜치 전략 (설계 핵심)
 
+저장소는 `2026-2-Backend-Practical-Study-Demo`이며, 과정 종료 후 최종본만 `-Demo`를 뺀 저장소로 옮깁니다.
+
+**히스토리는 하나, 브랜치는 그 위의 포인터입니다.**
+
 ```
-week0-baseline   ← 사전 배포. 기존 6주 학습 수준의 레거시 CRUD
-week1-start      ← 1주차 수업 시작 시 checkout
-week1-done       ← 1주차 완성본
-week2-start      = week1-done + 2주차 보일러플레이트(학생이 안 쓸 코드)
-week2-done
-...
-week6-done → main
+main:  main(베이스라인) ─ week1 ─ week1-done ─ week2 ─ week2-done ─ … ─ week6-done
+                            ↑        ↑          ↑         ↑                ↑
+                          week1  week1-done   week2   week2-done      (main HEAD)
 ```
 
-**`weekN-start`를 매주 새로 배포하는 것이 이 과정의 생존 장치입니다.**
-지난 주 실습을 못 끝냈거나 결석한 수강생도 `git checkout weekN-start` 한 줄로 복귀할 수 있어야 누적 이탈이 발생하지 않습니다. 6주 누적 프로젝트에서 3주차에 낙오하면 4~6주차가 통째로 무너지므로, 이 장치 없이는 커리큘럼이 성립하지 않습니다.
+| 브랜치 | 내용 |
+|---|---|
+| `main` | 레거시 3계층 CRUD 베이스라인. 과정이 끝나면 HEAD가 곧 최종 완성본 |
+| `weekN` | N주차 **문제**. 앞 주차 완성본 + 이번 주 보일러플레이트 + 빈 TODO |
+| `weekN-done` | N주차 **해설**. `weekN` + 정답 커밋 하나 |
 
-`weekN-start`에는 학생이 채울 자리를 다음 형식으로 표시합니다.
+12개 브랜치를 각각 따로 관리하지 않고 `main`의 선형 히스토리 위에 포인터만 찍습니다. 이렇게 하면 2주차 코드에서 버그를 발견해도 `main`에서 한 번 정리하고 포인터만 다시 찍으면 되며, 3~6주차 브랜치를 각각 체리픽할 일이 없습니다. 12개 브랜치가 사슬로 엮이면 초반 수정 한 번에 뒤쪽 10개를 다시 만들어야 하는데, 6주 과정에서 이 상황은 반드시 발생합니다.
+
+수강생 경험은 동일합니다.
+
+```bash
+git checkout week2          # 이번 주 문제
+git diff week2 week2-done   # 정답 diff
+```
+
+**`weekN` 브랜치를 매주 배포하는 것이 이 과정의 생존 장치입니다.**
+지난 주 실습을 못 끝냈거나 결석한 수강생도 `git checkout week4` 한 줄로 복귀할 수 있어야 누적 이탈이 발생하지 않습니다. 6주 누적 프로젝트에서 3주차에 낙오하면 4~6주차가 통째로 무너지므로, 이 장치 없이는 커리큘럼이 성립하지 않습니다.
+
+**이름을 `weekN-start`가 아니라 `weekN`으로 둔 이유**는 정렬입니다. `-start`를 쓰면 알파벳순으로 `week1-done`이 `week1-start`보다 앞에 와서 해설이 문제보다 위에 표시됩니다.
+
+#### TODO 표기 규칙
+
+`weekN`에는 학생이 채울 자리를 다음 형식으로 표시합니다.
 
 ```java
-// TODO-1: 수량이 0 이하이면 IllegalArgumentException 을 던지세요.
-//         힌트: 메시지는 "수량은 1개 이상이어야 합니다"
-throw new UnsupportedOperationException("TODO-1");
+// TODO[W1-4]: 수량이 0 이하이면 IllegalArgumentException 을 던지세요.
+//             힌트: 메시지는 "수량은 1개 이상이어야 합니다"
+throw new UnsupportedOperationException("TODO[W1-4]");
 ```
 
-`UnsupportedOperationException`으로 채워두면 미구현 상태에서 테스트가 **컴파일은 되고 실행은 실패**하므로, 빨강→초록 전환이 그대로 보입니다.
+`UnsupportedOperationException`으로 채워두면 미구현 상태에서 테스트가 **컴파일은 되고 실행은 실패**하므로, 빨강→초록 전환이 그대로 보입니다. 태그에 주차를 넣어두면 `TODO[W1`으로 검색해 그 주 과제만 한 번에 모을 수 있습니다.
+
+### 0.3.1 브랜치별 문서 배치
+
+문서를 `docs/` 한곳에 몰아두지 않고 **각 브랜치 루트에 그 주차 전용 문서**를 둡니다. 수강생이 GitHub에서 `week2` 브랜치로 전환하면 저장소 랜딩 페이지가 곧 그 주 문제지가 되므로, 매주 별도 링크를 안내할 필요가 없습니다.
+
+| 파일 | 위치 | 대상 | 내용 |
+|---|---|---|---|
+| `README.md` | 모든 `weekN` | 수강생 | 그 주 목표 · 실습 순서 · TODO 목록 · 완료 판정 기준 · 과제 |
+| `README.md` | 모든 `weekN-done` | 수강생 | **문제 브랜치와 다르게 씁니다.** 왜 이렇게 설계했는지, diff에서 어디를 봐야 하는지, 자주 하는 실수 |
+| `LIVE_SESSION.md` | 모든 `weekN` | 강사 | 시간 배분표 · 판서 자료 · 실행 명령 · 자주 나오는 오류 대응 |
+| `products.http` / `orders.http` | 코드와 같은 위치 | 공용 | IntelliJ HTTP Client용 요청 모음. Postman 없이 API 확인 |
+| `docs/curriculum-design.md` | `main`만 | 강사·팀 | 이 문서. 6주 전체 설계 |
+
+`weekN-done`의 README를 문제 브랜치와 똑같이 두면 복습 가치가 사라집니다. 해설 브랜치 README는 "정답 코드"가 아니라 "그 정답에 이르는 판단"을 적는 자리입니다.
+
+### 0.4 패키지 구조: 출발점과 도달점
+
+**`main` 베이스라인 — 수강생이 지난 6주간 익힌 3계층 구조**
+
+```
+com.gdghongik.commerce
+├── CommerceApplication.java
+├── controller/ProductController.java
+├── service/ProductService.java          ← 1주차 리팩터링 대상 (규칙 4개가 여기 모여 있음)
+├── repository/ProductRepository.java    ← JpaRepository 직접 상속
+├── entity/Product.java                  ← @Setter 열려 있음
+├── entity/SellingStatus.java
+├── dto/ProductResponse.java
+├── dto/ProductCreateRequest.java
+├── dto/DecreaseStockRequest.java
+├── exception/GlobalExceptionHandler.java
+├── exception/ErrorResponse.java
+└── config/DataInitializer.java          ← 확인용 상품 4건 시드
+```
+
+`Order`는 베이스라인에 없습니다. 1주차 과제로 도메인을 분석한 뒤 2주차에 처음 코드로 등장합니다.
 
 ### 0.4 최종 도달 패키지 구조 (6주차 완료 시점)
 
 ```
 com.gdghongik.commerce
-├── ProductApplication.java
+├── CommerceApplication.java
 ├── presentation                      ← 3주차에 확정
 │   ├── product/ProductController.java
 │   ├── product/dto/DecreaseStockRequest.java
@@ -101,6 +156,98 @@ com.gdghongik.commerce
 
 ---
 
+### 0.6 팀 분담과 인수인계 (W1–3 → W4–6)
+
+| 담당 | 회차 | 산출물 |
+|---|---|---|
+| 주강사 | `main` 베이스라인, W1, W2, W3 | 도메인 모델 · 4계층 구조 · Repository 추상화 |
+| 팀원 | W4, W5, W6 | 동시성 · 조회 성능 · 배포 |
+
+**인수인계 지점은 `week3-done`입니다.** 팀원의 4주차는 이 브랜치에서 출발하므로, `week3-done`은 코드가 아니라 **계약**으로 다뤄야 합니다.
+
+#### W1–3이 W4–6의 무대를 세운다
+
+뒤 세 회차가 앞 세 회차의 어떤 결정에 의존하는지입니다. ★ 표시는 없으면 해당 회차의 수업 목표 자체가 성립하지 않는 항목입니다.
+
+| 회차 | 필요한 것 | 만들어지는 곳 | 없으면 |
+|---|---|---|---|
+| W4 | `Product`가 `domain`에 있고 `decreaseStock()` 행위를 가짐 | W1 + W3 과제 | `@Version` 실습이 setter 코드 위에서 돌아 "규칙을 도메인이 지킨다"는 메시지가 흐려짐 |
+| W4 | `ProductRepository` 추상화 + Adapter | W3 과제 | 동시성 테스트가 어느 계층을 검증하는지 불명확 |
+| W4 | `GlobalExceptionHandler`가 `presentation`에 존재 | 베이스라인 → W3에서 이동 | 409 매핑을 꽂을 자리가 없음 |
+| W5 | **Order–OrderLine 양방향 연관관계, fetch는 LAZY 기본** ★ | W2 | **N+1이 재현되지 않아 회차 전체가 무너짐** |
+| W5 | `OrderRepository.findAll()` 이 존재 | W3 | fetch join을 꽂을 자리가 없음 |
+| W5 | `OrderRepositoryAdapter` ★ | W3 | "Domain·Application을 한 줄도 안 고치고 쿼리를 11개→1개로 줄인다"는 핵심 메시지 불가 |
+| W6 | 전체 테스트 초록 | W1~W5 누적 | 테스트 실패 시 배포 차단 시연 불가 |
+| W6 | `application.yaml` 프로파일 분리 가능 구조 | 베이스라인 | prod 설정 주입 불가 |
+
+W2에서 `OrderLine`을 `@ManyToOne(fetch = LAZY)`로, `Order`를 `@OneToMany(mappedBy = "order")`로 정확히 매핑하는 것이 5주차 성립 조건입니다. 여기서 `EAGER`를 기본값으로 두거나 단방향으로 만들면 팀원이 5주차 준비를 하다가 발견하게 되고, 그때는 W2·W3 브랜치를 모두 수정해야 합니다.
+
+#### 팀원이 실제로 수정하는 파일
+
+3주차까지 구조가 서 있으면 W4–6에서 손대는 파일은 놀랍도록 적습니다.
+
+| 회차 | 수정 | 신규 |
+|---|---|---|
+| W4 | `domain/product/Product.java` (+2줄, `@Version`)<br>`presentation/advice/GlobalExceptionHandler.java` (+8줄, 409) | `ConcurrentStockDecreaseTest` |
+| W5 | `infrastructure/persistence/SpringDataOrderRepository.java` (+3줄, `@Query`)<br>`OrderRepositoryAdapter.java` (1줄) | `OrderQueryTest`, 테스트 데이터 시더, `QueryCounter` |
+| W6 | 없음 | `Dockerfile`, `.github/workflows/deploy.yml`, `application-prod.yml` |
+
+**팀원은 `domain`과 `application` 패키지를 거의 열어보지 않아도 됩니다.** 이것이 3주차까지 DIP를 제대로 적용해서 얻는 실질적 이득이고, 동시에 인수인계 리스크를 구조로 흡수하는 장치입니다. 인수인계 문서를 아무리 잘 써도 팀원이 남의 도메인 코드를 읽고 이해해야 한다면 그 인수인계는 실패합니다.
+
+#### `week3-done` 인계 체크리스트
+
+주강사가 팀원에게 넘기기 전에 확인합니다.
+
+- [ ] `./gradlew build` 초록 (테스트 포함)
+- [ ] `application` 패키지에 JPA·Spring Data import 0건 (3.4절 grep 명령)
+- [ ] `Order`와 `Product` **둘 다** Repository 추상화 + Adapter 적용 완료
+- [ ] `Order`–`OrderLine` 연관관계가 양방향 · LAZY
+- [ ] `FakeOrderRepository`, `FakeProductRepository` 존재 — 팀원이 W4·W5 테스트를 짤 때 참고 자료가 됨
+- [ ] `week3-done` README에 "4주차가 이어받는 지점" 섹션
+- [ ] `docs/handoff.md` 작성 (아래)
+- [ ] 팀원이 `git checkout week3-done && ./gradlew build` 를 자기 노트북에서 성공
+
+#### 두 사람이 한 저장소를 쓸 때의 규칙
+
+선형 히스토리(0.3절) 구조에서는 앞부분을 고치면 뒷부분이 전부 밀립니다. 따라서 순서를 지켜야 합니다.
+
+1. 주강사가 `main` → `week3-done`까지 **완성하고 동결**합니다.
+2. 동결 시점에 팀원에게 알리고, 그 이후에는 주강사가 W1–3 히스토리를 다시 쓰지 않습니다.
+3. 팀원은 `week3-done` 위에 W4–6을 얹습니다.
+4. 동결 이후 W1–3에서 수정이 꼭 필요하면, 주강사가 단독으로 `rebase`하지 말고 **팀원과 같이 처리**합니다. 팀원의 작업분이 통째로 떠내려갑니다.
+
+`docs/handoff.md`에 담을 것: `week3-done` 상태 요약, 각 클래스의 설계 의도, W4–6이 확장할 지점, 건드리면 안 되는 계약, 알려진 한계.
+
+### 0.7 코드 난이도 기준
+
+수강생은 CRUD를 짜본 백엔드 입문자입니다. 강의 코드가 "잘 짠 코드"로 보이는 것보다 **40분 안에 읽히는 것**이 우선입니다. 아래를 지킵니다.
+
+**쓰는 것**
+
+- 평범한 `if` 검증문과 이른 예외 발생
+- 이름이 분명한 정적 팩터리 (`Money.of`, `OrderLine.of`)
+- 한 단계짜리 스트림 (`.map().toList()` 정도)
+- `record`로 만든 DTO
+- Lombok은 `@Getter`, `@RequiredArgsConstructor`, `@NoArgsConstructor` 세 개까지
+
+**쓰지 않는 것**
+
+| 금지 | 이유 |
+|---|---|
+| 제네릭 타입 직접 정의 (`<T extends ...>`) | 읽는 데만 시간이 걸리고 이 과정 주제와 무관 |
+| 상속 계층 · 추상 클래스 | Repository 인터페이스 하나로 충분 |
+| 2단계 이상 스트림 체이닝, 중첩 람다 | 디버깅 지점이 사라짐 |
+| `Optional` 체이닝 3단계 이상 | `orElseThrow` 한 번까지만 |
+| 리플렉션 | 유일한 예외는 강사 제공 `FakeRepository`의 id 부여 |
+| 커스텀 애노테이션 · AOP | 4계층과 트랜잭션 경계 설명이 흐려짐 |
+| 한 메서드 15줄 초과 | 화면에 한 번에 안 들어옴 |
+
+**주석 규칙** — 코드가 *무엇*을 하는지는 쓰지 않고, *왜* 그렇게 했는지만 씁니다. 특히 베이스라인의 나쁜 코드에는 "이게 왜 문제인지"를 주석으로 남겨서 리팩터링 동기가 코드 안에 보이게 합니다.
+
+**변수·메서드 이름은 한글 도메인 용어를 그대로 영어로 옮깁니다.** `decreaseStock`, `cancel`, `totalAmount` 처럼 수강생이 1주차 과제에서 쓴 자연어와 메서드 이름이 일대일로 대응해야 "분석한 규칙이 코드가 된다"는 경험이 성립합니다.
+
+---
+
 ## 1. WEEK 1 — 테스트로 시작하는 도메인 리팩터링
 
 `JUnit` · `AssertJ` · `도메인 리팩터링` · `Entity 행위`
@@ -122,9 +269,9 @@ com.gdghongik.commerce
 |---|---|---|
 | 0:00–0:05 | 도입 | Before/After 코드 1장 비교. "오늘 이 20줄을 3줄로 만들고, 그게 안전하다는 걸 테스트로 증명한다" |
 | 0:05–0:12 | 강사 라이브 | `ProductServiceTest` 첫 케이스를 강사가 처음부터 타이핑. given-when-then / assertThat / assertThatThrownBy 4개 문법만 |
-| 0:12–0:22 | **실습 1** | TODO-1~3: 실패 케이스 3개 채우기 (수량 0 이하 / 재고 부족 / 판매중지 상품) |
-| 0:22–0:32 | **실습 2** | TODO-4~5: `Product.decreaseStock()` 구현 → `ProductService` 축소 → 테스트 재실행 (그대로 초록) |
-| 0:32–0:38 | **실습 3** | TODO-6: 규칙 테스트를 `ProductTest`(순수 단위)로 이동. 실행 시간 비교 (예: 2.4초 → 0.03초) |
+| 0:12–0:22 | **실습 1** | TODO[W1-1~3]: 실패 케이스 3개 채우기 (수량 0 이하 / 재고 부족 / 판매중지 상품) |
+| 0:22–0:32 | **실습 2** | TODO[W1-4~5]: `Product.decreaseStock()` 구현 → `ProductService` 축소 → 테스트 재실행 (그대로 초록) |
+| 0:32–0:38 | **실습 3** | TODO[W1-6]: 규칙 테스트를 `ProductTest`(순수 단위)로 이동. 실행 시간 비교 (예: 2.4초 → 0.03초) |
 | 0:38–0:40 | 정리 | Service 줄 수 diff 확인 + 과제 안내 |
 
 **Extension +20분**
@@ -138,7 +285,7 @@ com.gdghongik.commerce
 
 ### 1.3 시작 코드 vs 완성 코드
 
-**`week1-start` — 레거시 상태**
+**`week1` — 레거시 상태**
 
 ```java
 // application 계층이 아직 없음. service 패키지 그대로.
@@ -233,7 +380,7 @@ public class Product {
 
 ### 1.5 강사 사전 준비물
 
-- `week0-baseline`, `week1-start`, `week1-done` 브랜치
+- `main`, `week1`, `week1-done` 브랜치
 - `ProductServiceTest`의 **정상 케이스 1개는 완성 상태로 제공** (형식을 보고 따라 쓰게)
 - Before/After 코드 슬라이드 1장 (좌우 비교)
 - 테스트 실패 화면 캡처 (빨강 → 초록)
@@ -287,9 +434,9 @@ Entity·VO·Aggregate 분류는 요구하지 않습니다(2주차 주제). 6번�
 |---|---|---|
 | 0:00–0:05 | 과제 정산 | **1주차 과제 표준 분석 답안 배포**. 학생 답안과 비교 (편차 흡수 장치) |
 | 0:05–0:12 | 개념 | Entity vs VO 판별표 → Aggregate/Root → "왜 Order 밖에서 OrderLine을 못 만지게 하나" |
-| 0:12–0:20 | **실습 1** | TODO-1~3: `Money`, `Quantity` 생성자 검증 + 계산 메서드 |
-| 0:20–0:32 | **실습 2** | TODO-4~7: `Order`의 `addLine` / `cancel` / `totalAmount` / 생성 검증 |
-| 0:32–0:38 | **실습 3** | TODO-8: `getOrderLines()` 방어 + 불변식 테스트 전체 실행 |
+| 0:12–0:20 | **실습 1** | TODO[W2-1~3]: `Money`, `Quantity` 생성자 검증 + 계산 메서드 |
+| 0:20–0:32 | **실습 2** | TODO[W2-4~7]: `Order`의 `addLine` / `cancel` / `totalAmount` / 생성 검증 |
+| 0:32–0:38 | **실습 3** | TODO[W2-8]: `getOrderLines()` 방어 + 불변식 테스트 전체 실행 |
 | 0:38–0:40 | 정리 | 불변식 ↔ 테스트 매핑표 확인 |
 
 **Extension +20분**
@@ -305,14 +452,14 @@ Entity·VO·Aggregate 분류는 요구하지 않습니다(2주차 주제). 6번�
 
 **⚠️ 이 회차가 40분 압박이 가장 큽니다.** VO 2개 + Aggregate + 불변식 6개를 백지에서 40분에 쓰는 것은 불가능하므로, **껍데기는 전부 제공하고 학생은 규칙 본문만 채웁니다.**
 
-`week2-start`가 **제공하는 것** (학생이 작성하지 않음):
+`week2`가 **제공하는 것** (학생이 작성하지 않음):
 - `Money`, `Quantity` 클래스 골격 + `equals`/`hashCode` 완성본
 - `OrderLine` 전체 (필드, 생성자, JPA 매핑)
 - `OrderStatus` enum
 - `Order`의 필드 · JPA 연관관계 매핑(`@OneToMany(cascade = ALL, orphanRemoval = true)`) · 생성자 시그니처
 - `OrderTest`, `MoneyTest`, `QuantityTest`에 **테스트 이름만 있고 본문이 비어 실패하는** 케이스 목록
 
-`week2-start`가 **비워두는 것** (학생 TODO): 생성자 검증문, 행위 메서드 본문, 컬렉션 방어 코드.
+`week2`가 **비워두는 것** (학생 TODO): 생성자 검증문, 행위 메서드 본문, 컬렉션 방어 코드.
 
 **완성 코드 발췌**
 
@@ -322,14 +469,14 @@ public class Money {
     private final long amount;
 
     public Money(long amount) {
-        if (amount < 0) {                                   // TODO-1
+        if (amount < 0) {                                   // TODO[W2-1]
             throw new IllegalArgumentException("금액은 0원 이상이어야 합니다");
         }
         this.amount = amount;
     }
 
-    public Money add(Money other) { return new Money(this.amount + other.amount); }      // TODO-2
-    public Money multiply(Quantity q) { return new Money(this.amount * q.value()); }     // TODO-2
+    public Money add(Money other) { return new Money(this.amount + other.amount); }      // TODO[W2-2]
+    public Money multiply(Quantity q) { return new Money(this.amount * q.value()); }     // TODO[W2-2]
 }
 ```
 
@@ -343,26 +490,26 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderLine> orderLines = new ArrayList<>();
 
-    public void addLine(Product product, Quantity quantity) {      // TODO-4
+    public void addLine(Product product, Quantity quantity) {      // TODO[W2-4]
         if (this.status != OrderStatus.CREATED) {
             throw new IllegalStateException("주문 확정 이후에는 항목을 변경할 수 없습니다");
         }
         this.orderLines.add(OrderLine.of(this, product, quantity));
     }
 
-    public void cancel() {                                          // TODO-5
+    public void cancel() {                                          // TODO[W2-5]
         if (this.status == OrderStatus.SHIPPED || this.status == OrderStatus.DELIVERED) {
             throw new IllegalStateException("배송이 시작된 주문은 취소할 수 없습니다");
         }
         this.status = OrderStatus.CANCELED;
     }
 
-    public Money totalAmount() {                                    // TODO-6
+    public Money totalAmount() {                                    // TODO[W2-6]
         return orderLines.stream().map(OrderLine::subtotal)
                          .reduce(Money.ZERO, Money::add);
     }
 
-    public List<OrderLine> getOrderLines() {                        // TODO-8
+    public List<OrderLine> getOrderLines() {                        // TODO[W2-8]
         return Collections.unmodifiableList(orderLines);
     }
 }
@@ -395,7 +542,7 @@ public class Order {
 ### 2.6 강사 사전 준비물
 
 - **1주차 과제 표준 분석 답안** (배포용 1페이지) — 이게 없으면 학생별 분석 편차 때문에 2주차 시작점이 흔들립니다
-- `week2-start` / `week2-done`
+- `week2` / `week2-done`
 - Entity vs VO 판별표 슬라이드 1장
 - 불변식 매핑표 (2.4) 인쇄물 또는 화면 고정
 - `OrderLine.subtotal()`, `OrderLine.of()` 완성 제공
@@ -438,10 +585,10 @@ public class Order {
 |---|---|---|
 | 0:00–0:06 | 개념 | 4계층 책임 + 의존 방향 화살표 그림 1장 |
 | 0:06–0:12 | 문제 목격 | 현재 `OrderServiceTest` 실행 → Spring 컨텍스트 + H2 기동 시간 관찰. "주문 규칙 하나 검증하려고 DB가 뜬다" |
-| 0:12–0:20 | **실습 1** | TODO-1~2: Domain에 `OrderRepository` 정의 → Application 의존 타입 교체 → **컴파일 에러 발생** |
-| 0:20–0:28 | **실습 2** | TODO-3: Infrastructure에 `OrderRepositoryAdapter` 작성 → 앱 기동 성공 |
-| 0:28–0:36 | **실습 3** | TODO-4~5: `FakeOrderRepository` 작성 → `@SpringBootTest` 제거 → 재실행 시간 비교 |
-| 0:36–0:40 | 정리 | Port–Adapter 그림 + TODO-6 의존성 점검 + 다음 주 예고 |
+| 0:12–0:20 | **실습 1** | TODO[W3-1~2]: Domain에 `OrderRepository` 정의 → Application 의존 타입 교체 → **컴파일 에러 발생** |
+| 0:20–0:28 | **실습 2** | TODO[W3-3]: Infrastructure에 `OrderRepositoryAdapter` 작성 → 앱 기동 성공 |
+| 0:28–0:36 | **실습 3** | TODO[W3-4~5]: `FakeOrderRepository` 작성 → `@SpringBootTest` 제거 → 재실행 시간 비교 |
+| 0:36–0:40 | 정리 | Port–Adapter 그림 + TODO[W3-6] 의존성 점검 + 다음 주 예고 |
 
 0:12–0:20 구간에서 **의도적으로 컴파일 에러를 내는 것이 이 회차의 교육 장치**입니다. "인터페이스만 만들었더니 스프링이 주입할 구현체를 못 찾는다" → Adapter의 필요성이 스스로 도출됩니다.
 
@@ -458,14 +605,14 @@ public class Order {
 
 **⚠️ 패키지 대이동은 강사가 미리 끝내둡니다.** 파일을 옮기고 import를 고치는 작업은 학습 가치가 없으면서 15분을 먹습니다.
 
-`week3-start`가 **제공하는 것**:
+`week3`가 **제공하는 것**:
 - 이미 `presentation / application / domain / infrastructure` 4개 패키지로 재배치 완료된 코드
 - `CreateOrderCommand`, `OrderResult` 완성본
 - `SpringDataOrderRepository extends JpaRepository<Order, Long>` (Infrastructure에 위치)
 - **단, `OrderService`가 `SpringDataOrderRepository`를 직접 주입받는 상태** ← 오늘 고칠 문제
 - `OrderServiceTest`가 `@SpringBootTest`로 되어 있는 상태
 
-**Before (week3-start)**
+**Before (week3)**
 
 ```java
 package com.gdghongik.commerce.application.order;
@@ -542,7 +689,7 @@ public class FakeOrderRepository implements OrderRepository {
 | 5 | `OrderServiceTest` | `@SpringBootTest` 제거, Fake 주입해서 직접 생성 |
 | 6 | (점검) | application 패키지에 아래 import가 0건인지 확인 |
 
-TODO-6 자가 점검 명령:
+TODO[W3-6] 자가 점검 명령:
 
 ```bash
 grep -rn "org.springframework.data\|jakarta.persistence\|infrastructure" src/main/java/com/gdghongik/commerce/application/ | wc -l
@@ -552,7 +699,7 @@ grep -rn "org.springframework.data\|jakarta.persistence\|infrastructure" src/mai
 
 ### 3.5 강사 사전 준비물
 
-- `week3-start`(패키지 재배치 완료) / `week3-done`
+- `week3`(패키지 재배치 완료) / `week3-done`
 - 4계층 의존 방향 그림 1장 — **화살표가 Infrastructure → Domain으로 거꾸로 꺾이는 지점을 강조**
 - `CreateOrderCommand` / `OrderResult` / Controller 매핑 완성본
 - `ReflectionTestUtils` 사용 이유 설명 노트 (Fake에서 id 부여)
@@ -567,7 +714,7 @@ grep -rn "org.springframework.data\|jakarta.persistence\|infrastructure" src/mai
 ### 3.7 과제 · WIL
 
 **과제:** `Product`에도 동일한 DIP를 적용한다. `domain/product/ProductRepository` 인터페이스 정의 → `ProductRepositoryAdapter` 구현 → `ProductService` 의존 교체 → `FakeProductRepository`로 1주차 테스트 재실행.
-→ **이 과제 결과가 곧 `week4-start`입니다.** 4주차 동시성 실습이 Product를 쓰기 때문에, 여기서 Product 계층을 정리해두면 다음 주가 그대로 이어집니다.
+→ **이 과제 결과가 곧 `week4`입니다.** 4주차 동시성 실습이 Product를 쓰기 때문에, 여기서 Product 계층을 정리해두면 다음 주가 그대로 이어집니다.
 
 **WIL 주제:** Repository 인터페이스를 Domain에 두는 것과 Infrastructure에 두는 것은 무엇이 다른가 (의존 방향 관점에서)
 
@@ -595,9 +742,9 @@ grep -rn "org.springframework.data\|jakarta.persistence\|infrastructure" src/mai
 | 0:00–0:08 | 복습 | 영속성 컨텍스트 / 변경 감지 / flush / commit 타임라인 판서. "언제 SQL이 나가는가" |
 | 0:08–0:14 | **문제 목격** | 강사 제공 `ConcurrentStockDecreaseTest` 실행 → 재고 1개인데 주문 2건 성공. 로그로 확인 |
 | 0:14–0:20 | 원인 분석 | 두 트랜잭션 타임라인 겹쳐 그리기. `@Transactional`을 붙여도 안 막히는 이유 |
-| 0:20–0:28 | **실습 1** | TODO-1~2: `@Version` 추가 → 재실행 → 1건 성공 / 1건 `ObjectOptimisticLockingFailureException` |
-| 0:28–0:36 | **실습 2** | TODO-3: 예외 → 409 Conflict 매핑 + API 레벨 확인 |
-| 0:36–0:40 | 정리 | 낙관/비관 비교표 + TODO-4(판단 근거 주석) 안내 |
+| 0:20–0:28 | **실습 1** | TODO[W4-1~2]: `@Version` 추가 → 재실행 → 1건 성공 / 1건 `ObjectOptimisticLockingFailureException` |
+| 0:28–0:36 | **실습 2** | TODO[W4-3]: 예외 → 409 Conflict 매핑 + API 레벨 확인 |
+| 0:36–0:40 | 정리 | 낙관/비관 비교표 + TODO[W4-4](판단 근거 주석) 안내 |
 
 **Extension +20분**
 
@@ -610,7 +757,7 @@ grep -rn "org.springframework.data\|jakarta.persistence\|infrastructure" src/mai
 
 ### 4.3 시작 코드 vs 완성 코드
 
-`week4-start` 제공물의 핵심은 **동시성 테스트 하네스 전체**입니다. 학생에게 `ExecutorService` / `CountDownLatch`를 백지에서 쓰게 하지 않습니다.
+`week4` 제공물의 핵심은 **동시성 테스트 하네스 전체**입니다. 학생에게 `ExecutorService` / `CountDownLatch`를 백지에서 쓰게 하지 않습니다.
 
 ```java
 // 강사 제공 — 학생은 읽고 실행만 한다
@@ -695,7 +842,7 @@ public class GlobalExceptionHandler {
 | 3 | `GlobalExceptionHandler` | 낙관적 락 예외 → 409 Conflict 매핑 |
 | 4 | `ProductService` | 충돌 시 **재시도할지 그냥 실패시킬지** 결정하고, 그 판단 근거를 주석으로 3줄 작성 |
 
-TODO-4는 코드가 아니라 **설계 판단 훈련**입니다. 정답은 없고 "재고 차감은 사용자에게 실패를 알리는 편이 안전하다 / 결제 이후라면 재시도가 낫다" 같은 근거를 쓰게 합니다.
+TODO[W4-4]는 코드가 아니라 **설계 판단 훈련**입니다. 정답은 없고 "재고 차감은 사용자에게 실패를 알리는 편이 안전하다 / 결제 이후라면 재시도가 낫다" 같은 근거를 쓰게 합니다.
 
 ### 4.5 강사 사전 준비물
 
@@ -741,10 +888,10 @@ TODO-4는 코드가 아니라 **설계 판단 훈련**입니다. 정답은 없�
 | 시간 | 구간 | 내용 |
 |---|---|---|
 | 0:00–0:06 | 개념 | 연관관계와 프록시. "LAZY는 안 가져온 게 아니라 나중에 가져온다" |
-| 0:06–0:14 | **실습 1** | TODO-1~2: SQL 로그 켜고 Order 10건 조회 → 라인 접근 → 쿼리 수 세기(11개) |
+| 0:06–0:14 | **실습 1** | TODO[W5-1~2]: SQL 로그 켜고 Order 10건 조회 → 라인 접근 → 쿼리 수 세기(11개) |
 | 0:14–0:20 | 원인 분석 | 1(목록) + N(각 건) 판서 |
-| 0:20–0:28 | **실습 2** | TODO-3: `fetch = EAGER`로 바꿔 재실행 → **여전히 11개**. 결과 기록 |
-| 0:28–0:36 | **실습 3** | TODO-4~6: `join fetch` JPQL 작성 → 쿼리 1개 → Adapter 연결 |
+| 0:20–0:28 | **실습 2** | TODO[W5-3]: `fetch = EAGER`로 바꿔 재실행 → **여전히 11개**. 결과 기록 |
+| 0:28–0:36 | **실습 3** | TODO[W5-4~6]: `join fetch` JPQL 작성 → 쿼리 1개 → Adapter 연결 |
 | 0:36–0:40 | 정리 | `distinct` / 페이징 경고 + N+1과 인덱스의 층위 구분 |
 
 0:20–0:28의 **EAGER 실험이 이 회차의 핵심 교육 장치**입니다. "N+1이면 EAGER로 바꾸면 되지 않나"는 이 레벨에서 거의 모두가 떠올리는 오해인데, 직접 돌려보고 쿼리 수가 그대로인 것을 보면 말로 설명하는 것보다 훨씬 강하게 남습니다.
@@ -760,10 +907,10 @@ TODO-4는 코드가 아니라 **설계 판단 훈련**입니다. 정답은 없�
 
 ### 5.3 시작 코드 vs 완성 코드
 
-`week5-start` 제공물:
+`week5` 제공물:
 - 테스트 데이터 시더 (Order 10건 × OrderLine 3건) — `@BeforeEach`에서 실행
 - SQL 쿼리 카운터 유틸 (Hibernate `Statistics` 기반)
-- `application-test.yml`의 로그 설정 (주석 처리된 상태 — TODO-1에서 학생이 켬)
+- `application-test.yml`의 로그 설정 (주석 처리된 상태 — TODO[W5-1]에서 학생이 켬)
 - `OrderQueryTest`에 쿼리 수를 단언하는 실패 테스트
 
 ```java
@@ -780,7 +927,7 @@ public class QueryCounter {
 }
 ```
 
-**Before (week5-start) — Adapter의 findAll**
+**Before (week5) — Adapter의 findAll**
 
 ```java
 @Override
@@ -821,7 +968,7 @@ public List<Order> findAll() {
 | 5 | `OrderRepositoryAdapter` | `findAll()`이 새 메서드를 쓰도록 연결 |
 | 6 | `OrderQueryTest` | `assertThat(counter.count()).isEqualTo(1)` 로 단언 → 초록 |
 
-TODO-3에서 **LAZY로 되돌리는 것까지가 TODO**입니다. 되돌리지 않으면 6주차까지 EAGER가 남습니다.
+TODO[W5-3]에서 **LAZY로 되돌리는 것까지가 TODO**입니다. 되돌리지 않으면 6주차까지 EAGER가 남습니다.
 
 ### 5.5 강사 사전 준비물
 
@@ -872,10 +1019,10 @@ TODO-3에서 **LAZY로 되돌리는 것까지가 TODO**입니다. 되돌리지 �
 | 시간 | 구간 | 내용 |
 |---|---|---|
 | 0:00–0:06 | 도입 | 오늘의 전체 흐름 그림 1장. "내 노트북에서만 되는 앱"에서 "누구나 부르는 API"로 |
-| 0:06–0:14 | **실습 1** | TODO-1: Dockerfile 읽고 빈칸 채우기 → 로컬 이미지 빌드 → `docker run`으로 실행 확인 |
-| 0:14–0:22 | **실습 2** | TODO-2~3: workflow의 테스트 스텝 추가 + 실패 시 중단 조건 확인 |
-| 0:22–0:30 | **실습 3** | TODO-4: push → Actions 로그 실시간 관찰 → 초록 |
-| 0:30–0:36 | **실습 4** | TODO-5~6: 배포 URL `/actuator/health` 호출 → Swagger에서 주문 생성 → RDS 반영 확인 |
+| 0:06–0:14 | **실습 1** | TODO[W6-1]: Dockerfile 읽고 빈칸 채우기 → 로컬 이미지 빌드 → `docker run`으로 실행 확인 |
+| 0:14–0:22 | **실습 2** | TODO[W6-2~3]: workflow의 테스트 스텝 추가 + 실패 시 중단 조건 확인 |
+| 0:22–0:30 | **실습 3** | TODO[W6-4]: push → Actions 로그 실시간 관찰 → 초록 |
+| 0:30–0:36 | **실습 4** | TODO[W6-5~6]: 배포 URL `/actuator/health` 호출 → Swagger에서 주문 생성 → RDS 반영 확인 |
 | 0:36–0:40 | 마무리 | H2 vs RDS 차이 + **6주 전체 회고** (1주차 Product 20줄 → 오늘 배포된 API까지의 경로 되짚기) |
 
 **Extension +20분**
@@ -919,7 +1066,7 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 EXPOSE 8080
-# TODO-1: 운영 환경에서 prod 프로파일로 뜨도록 실행 명령을 완성하세요
+# TODO[W6-1]: 운영 환경에서 prod 프로파일로 뜨도록 실행 명령을 완성하세요
 ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
 
@@ -940,7 +1087,7 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      # TODO-2: 전체 테스트를 실행하는 스텝을 추가하세요 (H2 사용)
+      # TODO[W6-2]: 전체 테스트를 실행하는 스텝을 추가하세요 (H2 사용)
 
       - name: Build image
         run: docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
@@ -1064,8 +1211,8 @@ jobs:
 
 | 순위 | 회차 | 위험 요인 | 처방 |
 |---|---|---|---|
-| 1 | **W2** | VO 2개 + Aggregate + 불변식 6개 = 40분 초과 확실 | 껍데기·JPA 매핑·`equals/hashCode`·`OrderLine` 전체를 `week2-start`에 완성 제공. 학생은 **검증문과 행위 본문만** 작성. 불변식 6개 중 Core에서는 4개(#2·#3·#5·#6)만 다루고 #1·#4는 Extension 또는 과제로 이동 |
-| 2 | **W3** | 패키지 재배치 작업이 순수 노동으로 15분 소모 | 재배치를 `week3-start`에 완료 배포. 학생은 인터페이스 정의 + Adapter + Fake 3개만 작성 |
+| 1 | **W2** | VO 2개 + Aggregate + 불변식 6개 = 40분 초과 확실 | 껍데기·JPA 매핑·`equals/hashCode`·`OrderLine` 전체를 `week2`에 완성 제공. 학생은 **검증문과 행위 본문만** 작성. 불변식 6개 중 Core에서는 4개(#2·#3·#5·#6)만 다루고 #1·#4는 Extension 또는 과제로 이동 |
+| 2 | **W3** | 패키지 재배치 작업이 순수 노동으로 15분 소모 | 재배치를 `week3`에 완료 배포. 학생은 인터페이스 정의 + Adapter + Fake 3개만 작성 |
 | 3 | **W6** | 외부 의존(네트워크·AWS·레지스트리) 실패 시 회차 붕괴 | 안 A(학생은 CI까지) 채택 + 녹화본·성공/실패 워크플로 링크·로컬 fallback 3중 대비 |
 | 4 | **W4** | 영속성 컨텍스트 복습이 길어지면 실습 시간 잠식 | 복습을 8분으로 타이머 고정. 상세 설명은 사전 배포 자료로 돌리고 수업에서는 **타임라인 그림 한 장**만 |
 | 5 | **W5** | fetch join 문법·`distinct`·페이징 한계를 다 다루면 초과 | Core는 "쿼리 세기 → EAGER 실험 → fetch join 1개 작성"만. `distinct` 필요성은 결과를 보여주고 한 문장 설명, 페이징 한계는 Extension |
@@ -1095,24 +1242,27 @@ jobs:
 
 ## 9. 🔸 선택 제안 (확정안 아님 — 채택 여부 결정 필요)
 
-1. **`weekN-start` 브랜치 매주 배포** — 0.3절. 낙오 복구 장치. **채택 강권**
+1. **`weekN` 브랜치 매주 배포** — 0.3절. 낙오 복구 장치. **채택 강권**
 2. **1주차 과제 표준 분석 답안 배포** — 2주차 시작점 통일용. **채택 강권**
 3. **6주차 배포 충돌 대응 안 A/B 결정** — 6.4절. **수업 전 결정 필수**
 4. **레지스트리로 ECR 대신 GHCR 사용** — IAM 준비 없이 `GITHUB_TOKEN`만으로 동작
 5. **W5 EAGER 실험을 Core에 포함** — 원래 확정안에 명시되지 않았으나, "EAGER는 해결책이 아니다"라는 확정 목표를 가장 효율적으로 달성하는 장치
 6. **W3 Extension에 ArchUnit 1개 테스트** — 의존 방향을 테스트로 고정. 취향에 따라 생략 가능
-7. **W4 TODO-4(판단 근거 주석)** — 코드가 아닌 설계 판단 훈련. 코드 분량이 적은 회차의 밀도를 채움
+7. **W4 TODO[W4-4] (판단 근거 주석)** — 코드가 아닌 설계 판단 훈련. 코드 분량이 적은 회차의 밀도를 채움
 8. **매 회차 도입 1분 서사 문장** — 7.2절
 
 ---
 
-## 10. 다음 작업 (이 문서 승인 후)
+## 10. 다음 작업
 
-| 순서 | 산출물 |
-|---|---|
-| 1 | `week0-baseline` 프로젝트 스캐폴딩 (Gradle, 패키지, 레거시 CRUD, H2 설정, Swagger) |
-| 2 | W1 `start`/`done` 코드 + 테스트 |
-| 3 | W2~W3 `start`/`done` 코드 |
-| 4 | W4~W5 `start`/`done` 코드 + 강사 제공 테스트 하네스 |
-| 5 | W6 Dockerfile / workflow / `application-prod.yml` |
-| 6 | 회차별 강의안(슬라이드 아웃라인) + 과제 안내문 |
+| 순서 | 산출물 | 담당 | 상태 |
+|---|---|---|---|
+| 1 | `main` 베이스라인 (Gradle, 3계층 CRUD, H2, Swagger, `products.http`) | 주강사 | **완료** |
+| 2 | `week1` / `week1-done` 코드 + 테스트 + 브랜치 README | 주강사 | |
+| 3 | `week2` / `week2-done` | 주강사 | |
+| 4 | `week3` / `week3-done` + `docs/handoff.md` | 주강사 | |
+| 5 | — **동결 후 팀원에게 인계** (0.6절 체크리스트) — | | |
+| 6 | `week4` / `week4-done` + 동시성 테스트 하네스 | 팀원 | |
+| 7 | `week5` / `week5-done` + 시더 · `QueryCounter` | 팀원 | |
+| 8 | `week6` / `week6-done` + Dockerfile · workflow · AWS 환경 | 팀원 | |
+| 9 | 회차별 `LIVE_SESSION.md` · 과제 안내문 | 각 담당 | |
