@@ -1,6 +1,7 @@
 package com.gdghongik.commerce.service;
 
 import com.gdghongik.commerce.entity.Product;
+import com.gdghongik.commerce.entity.Quantity;
 import com.gdghongik.commerce.repository.ProductRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class ProductService {
     @Transactional
     public void decreaseStock(Long productId, int quantity) {
         Product product = findById(productId);
-        product.decreaseStock(quantity);
+        product.decreaseStock(Quantity.of(quantity));
         productRepository.save(product);
     }
 }

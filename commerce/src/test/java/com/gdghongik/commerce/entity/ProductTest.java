@@ -20,7 +20,7 @@ class ProductTest {
         Product product = new Product("기계식 키보드", 129_000L, 10);
 
         // when
-        product.decreaseStock(3);
+        product.decreaseStock(Quantity.of(3));
 
         // then, 10에서 3을 빼면 7이겠죠?
         assertThat(product.getStock()).isEqualTo(7);
@@ -33,7 +33,7 @@ class ProductTest {
         Product product = new Product("기계식 키보드", 129_000L, 10);
 
         // when & then, 상품을 0개 사려고 시도할 때 적절한 예외를 반환하는지 확인합니다.
-        assertThatThrownBy(() -> product.decreaseStock(0))
+        assertThatThrownBy(() -> product.decreaseStock(Quantity.of(0)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("수량은 1개 이상이어야 합니다.");
     }
@@ -45,7 +45,7 @@ class ProductTest {
         Product product = new Product("무선 마우스", 45_000L, 3);
 
         // when & then, 재고가 3개인 상품을 4개 사려고 시도할 때 적절한 예외를 반환하는지 확인합니다.
-        assertThatThrownBy(() -> product.decreaseStock(4))
+        assertThatThrownBy(() -> product.decreaseStock(Quantity.of(4)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("재고가 부족합니다");
     }
@@ -58,7 +58,7 @@ class ProductTest {
         product.stopSelling();
 
         // when & then, 상태가 STOPPED인 상품을 사려고 시도할 때 적절한 예외를 반환하는지 확인합니다.
-        assertThatThrownBy(() -> product.decreaseStock(1))
+        assertThatThrownBy(() -> product.decreaseStock(Quantity.of(1)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("판매 중인 상품이 아닙니다.");
     }
@@ -70,7 +70,7 @@ class ProductTest {
         Product product = new Product("한정판 마우스패드", 19_000L, 1);
 
         // when
-        product.decreaseStock(1);
+        product.decreaseStock(Quantity.of(1));
 
         // then, 재고가 1개뿐인 상품을 1개 구매할 때 재고가 0이 되고 SOLD_OUT 상태로 적절히 변경하는지 확인합니다.
         assertThat(product.getStock()).isZero();

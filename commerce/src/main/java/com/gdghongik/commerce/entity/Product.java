@@ -47,18 +47,15 @@ public class Product {
      *
      * 재고를 줄여도 되는지에 대한 판단은 변경되는 주체인 Product 엔티티가 직접 판단한다.
      */
-    public void decreaseStock(int quantity) {
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("수량은 1개 이상이어야 합니다.");
-        }
+    public void decreaseStock(Quantity quantity) {
         if (this.status != SellingStatus.SELLING) {
             throw new IllegalStateException("판매 중인 상품이 아닙니다.");
         }
-        if (this.stock < quantity) {
+        if (this.stock < quantity.value()) {
             throw new IllegalStateException("재고가 부족합니다. 남은 재고=" + this.stock);
         }
 
-        this.stock -= quantity;
+        this.stock -= quantity.value();
 
         if (this.stock == 0) {
             this.status = SellingStatus.SOLD_OUT;
