@@ -15,7 +15,9 @@ public class Money {
     private long amount;
 
     private Money(long amount) {
-        // TODO[W2-1]: 금액이 0원 미만이면 IllegalArgumentException 을 던지세요.
+        if (amount < 0) {
+            throw new IllegalArgumentException("금액은 0원 이상이어야 합니다.");
+        }
         this.amount = amount;
     }
 
@@ -24,13 +26,11 @@ public class Money {
     }
 
     public Money add(Money other) {
-        // TODO[W2-2]: 두 금액을 더한 새 Money 를 반환하세요.
-        throw new UnsupportedOperationException("TODO[W2-2]");
+        return Money.of(this.amount + other.amount);
     }
 
     public Money multiply(Quantity quantity) {
-        // TODO[W2-2]: 금액에 수량을 곱한 새 Money 를 반환하세요.
-        throw new UnsupportedOperationException("TODO[W2-2]");
+        return Money.of(this.amount * quantity.value());
     }
 
     public long value() {
