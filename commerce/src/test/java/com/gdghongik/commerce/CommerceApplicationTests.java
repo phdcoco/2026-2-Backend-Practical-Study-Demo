@@ -9,4 +9,5 @@ class CommerceApplicationTests {
 	@Test
 	void contextLoads() {
 	}
+
 }

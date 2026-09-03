@@ -1,7 +1,6 @@
 package com.gdghongik.commerce.service;
 
 import com.gdghongik.commerce.entity.Product;
-import com.gdghongik.commerce.entity.SellingStatus;
 import com.gdghongik.commerce.repository.ProductRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -29,28 +28,14 @@ public class ProductService {
         return productRepository.save(new Product(name, price, stock));
     }
 
-    // TODO[W1-5]: 조회 -> product.decreaseStock(quantity) -> 저장 3줄로 줄이고, Product 의 @Setter 를 지우세요.
+    /**
+     * 이제 이 메서드는 상품을 ID로 찾고, 상품의 재고를 줄이고, 변경된 상품 정보를 저장하는 작업을 하라고 명령합니다.
+     * 재고를 줄여도 되는지에 대한 판단은 Product가 직접 합니다.
+     */
     @Transactional
     public void decreaseStock(Long productId, int quantity) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. id=" + productId));
-
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("수량은 1개 이상이어야 합니다.");
-        }
-        if (product.getStatus() != SellingStatus.SELLING) {
-            throw new IllegalStateException("판매 중인 상품이 아닙니다.");
-        }
-        if (product.getStock() < quantity) {
-            throw new IllegalStateException("재고가 부족합니다. 남은 재고=" + product.getStock());
-        }
-
-        product.setStock(product.getStock() - quantity);
-
-        if (product.getStock() == 0) {
-            product.setStatus(SellingStatus.SOLD_OUT);
-        }
-
+        Product product = findById(productId);
+        product.decreaseStock(quantity);
         productRepository.save(product);
     }
 }

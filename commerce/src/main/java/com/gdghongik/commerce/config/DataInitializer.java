@@ -8,6 +8,10 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+/**
+ * 애플리케이션을 띄우면 확인용 상품이 자동으로 들어갑니다.
+ * 테스트에서는 사용하지 않도록 Profile로 조치했습니다.
+ */
 @Component
 @Profile("!test")
 @RequiredArgsConstructor
