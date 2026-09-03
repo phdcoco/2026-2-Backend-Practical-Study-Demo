@@ -11,12 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * 상품.
- *
- * 지금은 값을 담기만 하는 객체다.
- * 재고를 줄이는 규칙은 이 클래스가 아니라 ProductService 가 들고 있다.
- */
 @Entity
 @Getter
 @Setter
@@ -41,5 +35,14 @@ public class Product {
         this.price = price;
         this.stock = stock;
         this.status = SellingStatus.SELLING;
+    }
+
+    public void stopSelling() {
+        this.status = SellingStatus.STOPPED;
+    }
+
+    public void decreaseStock(int quantity) {
+        // TODO[W1-4]: 재고 감소 규칙을 여기에 구현하세요.
+        throw new UnsupportedOperationException("TODO[W1-4]");
     }
 }

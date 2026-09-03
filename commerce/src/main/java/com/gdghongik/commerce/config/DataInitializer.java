@@ -1,7 +1,6 @@
 package com.gdghongik.commerce.config;
 
 import com.gdghongik.commerce.entity.Product;
-import com.gdghongik.commerce.entity.SellingStatus;
 import com.gdghongik.commerce.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
@@ -9,10 +8,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-/**
- * 애플리케이션을 띄우면 확인용 상품이 자동으로 들어간다.
- * 테스트에서는 뜨지 않도록 test 프로파일을 제외한다.
- */
 @Component
 @Profile("!test")
 @RequiredArgsConstructor
@@ -29,7 +24,7 @@ public class DataInitializer implements ApplicationRunner {
         productRepository.save(limited);
 
         Product stopped = new Product("단종된 USB 허브", 25_000L, 5);
-        stopped.setStatus(SellingStatus.STOPPED);
+        stopped.stopSelling();
         productRepository.save(stopped);
     }
 }
