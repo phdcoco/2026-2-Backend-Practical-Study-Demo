@@ -6,25 +6,22 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.gdghongik.commerce.application.order.dto.CreateOrderCommand;
 import com.gdghongik.commerce.application.order.dto.OrderResult;
 import com.gdghongik.commerce.domain.product.Product;
-import com.gdghongik.commerce.infrastructure.persistence.ProductJpaRepository;
+import com.gdghongik.commerce.application.product.FakeProductRepository;
+import com.gdghongik.commerce.domain.product.ProductRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
-// 과제: 이 테스트를 Fake 기반으로 바꾸는 것이 이번 주 과제입니다.
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
 class OrderServiceTest {
 
-    @Autowired
     private OrderService orderService;
+    private ProductRepository productRepository;
 
-    @Autowired
-    private ProductJpaRepository productRepository;
+    @BeforeEach
+    void setUp() {
+        productRepository = new FakeProductRepository();
+        orderService = new OrderService(new FakeOrderRepository(), productRepository);
+    }
 
     @Test
     @DisplayName("상품을 주문하면 주문이 생성된다")
