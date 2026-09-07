@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OrderPersistenceTest {
 
     @Autowired
-    private SpringDataOrderRepository orderRepository;
+    private OrderJpaRepository orderRepository;
 
     @Autowired
     private EntityManager entityManager;

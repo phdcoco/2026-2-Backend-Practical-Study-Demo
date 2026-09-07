@@ -7,8 +7,8 @@ import com.gdghongik.commerce.domain.common.Quantity;
 import com.gdghongik.commerce.domain.order.Order;
 import com.gdghongik.commerce.domain.order.OrderItem;
 import com.gdghongik.commerce.domain.product.Product;
-import com.gdghongik.commerce.infrastructure.persistence.SpringDataOrderRepository;
-import com.gdghongik.commerce.infrastructure.persistence.SpringDataProductRepository;
+import com.gdghongik.commerce.infrastructure.persistence.OrderJpaRepository;
+import com.gdghongik.commerce.infrastructure.persistence.ProductJpaRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,10 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderService {
 
     // 과제: 이 줄을 domain 의 OrderRepository 로 바꾸는 것이 이번 주 과제입니다.
-    private final SpringDataOrderRepository orderRepository;
+    private final OrderJpaRepository orderRepository;
 
     // TODO[W3-2]: 이 줄도 domain 의 ProductRepository 로 바꾸세요.
-    private final SpringDataProductRepository productRepository;
+    private final ProductJpaRepository productRepository;
 
     @Transactional
     public Long place(CreateOrderCommand command) {

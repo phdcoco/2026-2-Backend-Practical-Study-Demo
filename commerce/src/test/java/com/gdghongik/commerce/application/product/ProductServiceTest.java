@@ -1,7 +1,7 @@
 package com.gdghongik.commerce.application.product;
 
 import com.gdghongik.commerce.domain.product.Product;
-import com.gdghongik.commerce.infrastructure.persistence.SpringDataProductRepository;
+import com.gdghongik.commerce.infrastructure.persistence.ProductJpaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ class ProductServiceTest {
     private ProductService productService;
 
     @Autowired
-    private SpringDataProductRepository productRepository;
+    private ProductJpaRepository productRepository;
 
     @Test
     @DisplayName("재고를 정상적으로 감소시킨다")

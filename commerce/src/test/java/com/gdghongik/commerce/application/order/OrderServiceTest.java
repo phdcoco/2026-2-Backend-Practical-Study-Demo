@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.gdghongik.commerce.application.order.dto.CreateOrderCommand;
 import com.gdghongik.commerce.application.order.dto.OrderResult;
 import com.gdghongik.commerce.domain.product.Product;
-import com.gdghongik.commerce.infrastructure.persistence.SpringDataProductRepository;
+import com.gdghongik.commerce.infrastructure.persistence.ProductJpaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ class OrderServiceTest {
     private OrderService orderService;
 
     @Autowired
-    private SpringDataProductRepository productRepository;
+    private ProductJpaRepository productRepository;
 
     @Test
     @DisplayName("상품을 주문하면 주문이 생성된다")

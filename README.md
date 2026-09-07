@@ -54,7 +54,7 @@ ProductTest           0.03초
 왜 DB 가 떠야 하는지, `ProductService` 를 열어보세요.
 
 ```java
-private final SpringDataProductRepository productRepository;   // ← infrastructure 패키지
+private final ProductJpaRepository productRepository;   // ← infrastructure 패키지
 ```
 
 이 타입은 `JpaRepository` 를 상속합니다. **JPA 를 아는 타입이에요.**
@@ -90,7 +90,7 @@ presentation ──> application ──> domain
 |---|---|---|
 | `ProductRepository` | **Port.** "저장소는 이렇게 생겨야 한다" 는 도메인의 요구 | `domain/product` |
 | `ProductRepositoryAdapter` | **Adapter.** 그 요구를 JPA 로 실제 구현 | `infrastructure/persistence` |
-| `SpringDataProductRepository` | 진짜 JPA 인터페이스. **Adapter 만 이걸 안다** | `infrastructure/persistence` |
+| `ProductJpaRepository` | 진짜 JPA 인터페이스. **Adapter 만 이걸 안다** | `infrastructure/persistence` |
 
 ---
 
@@ -109,7 +109,7 @@ presentation ──> application ──> domain
 
 ### W3-2 는 두 파일입니다
 
-`SpringDataProductRepository` 를 쓰는 곳이 `ProductService` 와 `OrderService` **두 군데**입니다.
+`ProductJpaRepository` 를 쓰는 곳이 `ProductService` 와 `OrderService` **두 군데**입니다.
 둘 다 바꾸세요. 인터페이스로 바꾸고 나면 **쓰는 쪽이 몇 개든 전부 같은 타입만 봅니다.**
 
 ### W3-2 를 하면 앱이 안 뜹니다. 정상입니다.
@@ -154,7 +154,7 @@ grep -rn "org.springframework.data\|jakarta.persistence\|infrastructure" src/mai
 
 - [ ] 위 grep 결과가 `1`
 - [ ] `ProductRepository` 에 JPA·Spring 타입이 없다 (`import` 가 `java.util` 뿐)
-- [ ] `ProductService` 에서 `SpringData` 라는 단어가 사라졌다
+- [ ] `ProductService` 에서 `Jpa` 가 들어간 타입이 사라졌다
 - [ ] **같은 `ProductService` 가 JPA Adapter 로도, `HashMap` Fake 로도 동작한다** — 본문 0줄 변경
 
 **따라오는 것**
@@ -216,8 +216,12 @@ grep -rn "org.springframework.data\|jakarta.persistence\|infrastructure" src/mai
 
 1. `OrderRepository` 를 `domain/order` 에 두었습니다. `infrastructure` 에 두면 무엇이 달라지나요?
 2. `Adapter` 가 하는 일이 **위임뿐**입니다. 한 줄씩 그대로 넘기죠.
-   이렇게 아무것도 안 하는 클래스를 왜 만드나요? 없애고 `SpringDataOrderRepository` 가 직접
+   이렇게 아무것도 안 하는 클래스를 왜 만드나요? 없애고 `OrderJpaRepository` 가 직접
    `OrderRepository` 를 상속하게 하면 안 되나요? **된다면 무엇을 잃나요?**
+
+   > 힌트: 실제로 됩니다. 37줄이 9줄이 되고 테스트도 다 통과해요.
+   > **그럼 Port 에 `List<Product> findSellingProducts();` 를 하나 추가해 보세요.**
+   > 무슨 일이 일어나는지가 답입니다.
 3. `FakeOrderRepository` 는 `HashMap` 이라 트랜잭션도 없고 SQL 도 안 나갑니다.
    **이 Fake 로는 절대 못 잡는 버그**를 하나 들어보세요.
 
