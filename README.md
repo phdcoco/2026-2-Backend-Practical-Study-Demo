@@ -5,7 +5,12 @@
 ## 오늘 할 일 한 줄 요약
 
 `ProductService` 가 **JPA 를 모르게** 만든다.
-그러면 상품 규칙을 검증하는 데 데이터베이스가 필요 없어진다.
+
+저장소를 JPA 로 하든 `HashMap` 으로 하든 **서비스 코드가 안 바뀌는 상태**가 오늘의 목표다.
+클린 아키텍처에서 말하는 **"데이터베이스는 세부사항이다"** 를 코드로 만드는 것.
+
+> 테스트가 빨라지는 것은 **그 결과**입니다. 기술이 안 붙어 있으니 기술을 안 띄워도 되거든요.
+> 목적과 결과를 헷갈리지 마세요.
 
 ---
 
@@ -24,7 +29,8 @@ cd commerce
 
 | | 1·2주차 | 3주차 |
 |---|---|---|
-| 성공 지표 | 테스트가 초록이 된다 | **테스트가 빨라진다** · **grep 결과가 0이 된다** |
+| 목표 | 규칙을 객체 안으로 | **규칙을 기술에서 떼어내기** |
+| 성공 지표 | 테스트가 초록이 된다 | **기술 의존 grep 이 줄어든다** (빨라지는 건 결과) |
 
 ---
 
@@ -144,19 +150,29 @@ grep -rn "org.springframework.data\|jakarta.persistence\|infrastructure" src/mai
 
 ## 완료 기준
 
-- [ ] `./gradlew test` 38개 초록
+**주 지표**
+
 - [ ] 위 grep 결과가 `1`
+- [ ] `ProductRepository` 에 JPA·Spring 타입이 없다 (`import` 가 `java.util` 뿐)
+- [ ] `ProductService` 에서 `SpringData` 라는 단어가 사라졌다
+- [ ] **같은 `ProductService` 가 JPA Adapter 로도, `HashMap` Fake 로도 동작한다** — 본문 0줄 변경
+
+**따라오는 것**
+
+- [ ] `./gradlew test` 38개 초록 (시작과 같은 숫자)
 - [ ] `ProductServiceTest` 에 `@SpringBootTest` 가 없다
 - [ ] `ProductServiceTest` 단독 실행이 **1초 미만**
-- [ ] `ProductRepository` 에 JPA·Spring 타입이 없다
 
-### 시간을 적어두세요
+### 시간도 적어두세요
 
 | | 전 | 후 |
 |---|---|---|
 | `ProductServiceTest` 단독 | 초 | 초 |
 
-이 숫자 두 개가 오늘의 성적표입니다. (참고: 약 2.4초 → 0.05초)
+(참고: 약 2.4초 → 0.05초)
+
+**단, 이건 성적표의 2번입니다.** 1번은 위의 grep 이에요.
+빠르게 하려고 분리한 게 아니라 **분리했더니 빨라진 것**입니다.
 
 ---
 
@@ -215,4 +231,4 @@ grep -rn "org.springframework.data\|jakarta.persistence\|infrastructure" src/mai
 **WIL 주제 (택 1)**
 
 1. Repository 인터페이스를 `domain` 에 두는 것과 `infrastructure` 에 두는 것은 의존 방향 관점에서 무엇이 다른가
-2. 오늘 테스트가 44배 빨라졌다. 무엇을 **안 하게 되어서** 빨라졌는가
+2. 저장소 구현을 JPA 에서 `HashMap` 으로 통째로 바꿨는데 `ProductService` 는 왜 한 줄도 안 바뀌었는가
