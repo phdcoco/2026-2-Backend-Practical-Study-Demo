@@ -1,7 +1,7 @@
 package com.gdghongik.commerce.config;
 
-import com.gdghongik.commerce.entity.Product;
-import com.gdghongik.commerce.repository.ProductRepository;
+import com.gdghongik.commerce.domain.product.Product;
+import com.gdghongik.commerce.infrastructure.persistence.SpringDataProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DataInitializer implements ApplicationRunner {
 
-    private final ProductRepository productRepository;
+    private final SpringDataProductRepository productRepository;
 
     @Override
     public void run(ApplicationArguments args) {
